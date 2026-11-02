@@ -1,19 +1,26 @@
 # Carregamento de Produtos
 
-Este repositório contém a exportação de uma solução do Microsoft Power Platform para o controle de carregamento de notas fiscais e volumes de produtos em um aplicativo Canvas do Power Apps.
-
 ## Visão geral
 
-O projeto implementa um fluxo completo de gestão de carregamento de produtos, com foco em:
+Este repositório contém a exportação de uma solução do Microsoft Power Platform desenvolvida para controlar o processo de carregamento de produtos e volumes de notas fiscais em um aplicativo Canvas do Power Apps.
 
-- criação e edição de notas fiscais
-- listagem de NF pendentes e concluídas
-- registro de volumes por produto
-- consulta de histórico por NF/volume/peça/série
-- cancelamento de NF com justificativa
-- estorno individual de volumes já carregados
+A solução foi estruturada para permitir o gerenciamento do ciclo operacional de uma nota fiscal, desde o cadastro inicial até o carregamento, consulta e eventual estorno de volumes.
 
-A solução foi identificada como um pacote Power Platform com os seguintes metadados principais:
+## Objetivo do sistema
+
+O sistema tem como objetivo acompanhar e controlar o carregamento de produtos em uma nota fiscal, com foco em:
+
+- cadastro de NF
+- acompanhamento do status da NF
+- registro de volumes por série ou peça
+- validação de performance e integridade do carregamento
+- consulta de histórico por NF e volume
+- estorno de volume individual
+- cancelamento da NF quando necessário
+
+## Solução Power Platform
+
+Metadados identificados no repositório:
 
 - Nome da solução: `CarregamentodeProdutos`
 - Publisher: `Cr618fa`
@@ -39,46 +46,156 @@ powerapps-carregamentodeprodutos/
             └── Solution.xml
 ```
 
-## Arquitetura funcional do aplicativo
+## Fluxo funcional do app
 
-Os trechos do código anexados indicam um aplicativo com vários screens, sendo os principais:
+### 1. Cadastro de NF
+A operação inicia com o cadastro ou edição da nota fiscal. Nessa etapa o usuário informa:
 
-- `scrInicio` — tela inicial / navegação geral
-- `scrNovaNF` — cadastro e edição de NF
-- `scrPendentes` — listagem de NFs pendentes
-- `scrCarregamento` — registro de volumes em uma NF
-- `scrConsulta` — consulta do histórico e estorno de volumes
-- `scrConcluidas` — listagem de NFs concluídas
+- número da NF
+- cliente
+- quantidade de volumes
+- observação opcional
 
-Os dados do app são tratados por meio das coleções e variáveis globais, principalmente:
+Validações aplicadas:
 
-- `VarCabecalho` — NF selecionada no momento
-- `VarProcessando` — bloqueio de operação em carregamento
-- `VarProcessandoEstorno` — bloqueio de operação em estorno
-- `VarMostrarEstorno` — exibição do modal de estorno
-- `VarLinhaEstorno` — linha selecionada para estorno
-- `VarMostrarCancelamento` — exibição do modal de cancelamento
-- `VarNFParaCancelar` — NF selecionada para cancelamento
-- `VarAba` — alternância entre registro e volumes em mobile
-- `colLinhasNF` — linhas carregadas da NF atual
-- `VarVolumesCarregados` — contagem atual de volumes carregados
-- `VarProximoVolume` — próximo número de volume disponível
+- número da NF obrigatório
+- cliente obrigatório
+- quantidade de volumes positiva
+- edição da NF não deve alterar o número original
+- status inicial da NF é `PENDENTE`
 
-## Fontes de dados e entidades
+### 2. Listagem de pendentes
+A tela de pendentes apresenta as NFs em andamento, com informações como:
 
-Os nomes dos dados sugerem que o app usa entidades/coleções de Power Apps relacionadas a expedição:
+- número da NF
+- cliente
+- volumes totais
+- volumes carregados
+- saldo restante
+- status atual
 
-- `expedicao_cabecalho` — cabeçalho da NF/expedição
-- `Expedicao_Linhas` — linhas/volumes da NF
+Também há ações para:
 
-Campos e propriedades observados:
+- abrir uma NF para carregamento
+- editar uma NF
+- cancelar NF quando ela ainda está pendente e sem carregamento
+
+### 3. Registro de carregamento
+Ao abrir uma NF, o usuário acessa a tela de carregamento e informa:
+
+- tipo do produto (`Peça` ou `Máquina`)
+- número de série da máquina, ou conteúdo da peça
+- volume atual a ser registrado
+
+O sistema calcula automaticamente o próximo volume disponível e impede duplicações.
+
+### 4. Validações no carregamento
+O app valida as regras de negócio antes da gravação:
+
+- NF não pode receber novos carregamentos se já está `CONCLUÍDO` ou `CANCELADO`
+- tipo do produto é obrigatório
+- série de máquina obrigatória e numérica
+- peça obrigatória quando o tipo for `Peça`
+- não pode exceder o total de volumes previstos
+- não pode repetir série já carregada em outra linha ativa
+- não pode duplicar a chave do volume já registrada
+
+### 5. Status da NF
+O status da NF é calculado automaticamente conforme o carregamento:
+
+- `PENDENTE`: sem volumes carregados
+- `EM CARREGAMENTO`: há volumes carregados, mas ainda faltam alguns
+- `CONCLUÍDO`: todos os volumes foram carregados
+- `CANCELADO`: NF cancelada
+
+### 6. Consulta do histórico
+A área de consulta mostra todos os volumes vinculados à NF selecionada, incluindo:
+
+- volume
+- tipo de produto
+- data/hora do carregamento
+- status da linha
+- possibilidade de estorno
+
+A busca pode ser feita por:
+
+- número do volume
+- número de série
+- peça
+
+### 7. Estorno de volume
+Quando um volume foi carregado, o usuário pode realizar o estorno individual, desde que:
+
+- informe o motivo do estorno
+- a linha esteja com status `CARREGADO`
+- a NF não esteja cancelada
+
+Ao confirmar, o sistema:
+
+- atualiza o status da linha para `ESTORNADO`
+- grava a data e o usuário do estorno
+- registra o motivo do estorno
+- recalcula o total e o status da NF
+
+### 8. Cancelamento de NF
+A NF pode ser cancelada somente quando:
+
+- está em status `PENDENTE`
+- não há volumes carregados
+- não existe linha ativa vinculada à NF
+
+Ao cancelar, o sistema grava:
+
+- motivo do cancelamento
+- data do cancelamento
+- usuário responsável
+
+## Regras de negócio principais
+
+### Fluxo operacional da NF
+
+1. O usuário cadastra a NF
+2. A NF fica pendente
+3. O usuário registra volumes
+4. O sistema atualiza a contagem e o status
+5. Quando todos os volumes forem registrados, a NF passa para `CONCLUÍDO`
+6. O histórico pode ser consultado
+7. Um volume individual pode ser estornado
+8. A NF pode ser cancelada antes do início do carregamento
+
+### Lógica de cálculo de status
+
+O status da NF é atualizado com base na quantidade carregada:
+
+- se `VolumesCarregados >= Volumes` → `CONCLUÍDO`
+- se `VolumesCarregados > 0` → `EM CARREGAMENTO`
+- se `VolumesCarregados <= 0` → `PENDENTE`
+
+### Lógica de próximo volume
+
+O app calcula o próximo volume livre da sequência:
+
+- percorre os volumes previstos
+- compara com os já carregados
+- identifica o primeiro volume ainda não ocupado
+
+Isso evita duplicidade e mantém a sequência consistente.
+
+## Dados e entidades principais
+
+Os nomes sugerem o uso de duas entidades principais:
+
+- `expedicao_cabecalho` — dados gerais da NF
+- `Expedicao_Linhas` — dados dos volumes/itens da NF
+
+Campos importantes identificados:
 
 - `ID`
 - `NumeroNF`
 - `Cliente`
 - `Volumes`
 - `VolumesCarregados`
-- `Status` (tipo de opção / Choice)
+- `Status`
 - `DataCarregamento`
 - `Observacao`
 - `MotivoCancelamento`
@@ -98,180 +215,57 @@ Campos e propriedades observados:
 - `Lin_UsuarioEstorno`
 - `Lin_MotivoEstorno`
 
-## Regras de negócio principais
+## Rastreabilidade e auditoria
 
-### 1) Cadastro de nova NF
-Na tela `scrNovaNF`, o usuário preenche:
-
-- número da NF
-- cliente
-- quantidade de volumes
-- observação opcional
-
-A lógica de criação/edição valida:
-
-- número da NF não pode ficar em branco
-- cliente obrigatório
-- quantidade de volumes deve ser positiva
-- a edição não permite alterar o número da NF
-- ao confirmar, a NF entra em status `PENDENTE`
-
-### 2) Status da NF
-A aplicação utiliza um fluxo de status em torno da expedição:
-
-- `PENDENTE` — NF aberta, ainda não concluída
-- `EM CARREGAMENTO` — há pelo menos 1 volume carregado, mas faltam mais
-- `CONCLUÍDO` — todos os volumes foram carregados
-- `CANCELADO` — NF cancelada por motivo informado
-- `ESTORNADO` — volume individual removido do carregamento
-
-Regra da tela de carregamento:
-
-- se `VarVolumesCarregados >= VarCabecalho.Volumes`, a NF é tratada como concluída
-- se `VarVolumesCarregados > 0`, status vira `EM CARREGAMENTO`
-- se `VarVolumesCarregados <= 0`, status volta para `PENDENTE`
-
-### 3) Registro de volumes
-Na tela `scrCarregamento`, o usuário:
-
-- escolhe o tipo de produto: `Peça` ou `Máquina`
-- informa a série ou a peça conforme o tipo
-- registra o volume com base no próximo número disponível
-
-Validações aplicadas:
-
-- a NF não pode receber novos carregamentos se já está `CONCLUÍDO` ou `CANCELADO`
-- `Tipo de Produto` é obrigatório
-- para máquina: a série é obrigatória e deve conter apenas números
-- para peça: o campo de peça deve ser preenchido
-- não permite registrar volumes excedentes ao total da NF
-- não permite duplicar série já ativa em outra linha com status `CARREGADO`
-- não permite registrar o mesmo volume/chave de volume já em uso
-
-A lógica de controle interna usa:
-
-```powerapps
-Sequence(VarCabecalho.Volumes) As Vol
-Filter(... !(Vol.Value in colLinhasNF.Lin_NumeroVolume))
-```
-
-Essencialmente, o app calcula o próximo volume livre da sequência e evita duplicações.
-
-### 4) Atualização da NF após registro
-Ao registrar um volume, o app:
-
-- atualiza a tabela `Expedicao_Linhas`
-- cria uma linha com:
-  - `Lin_CabecalhoID`
-  - `Lin_NumeroNF`
-  - `Lin_NumeroVolume`
-  - `Lin_ChaveVolume`
-  - `Lin_TipoProduto`
-  - `Lin_SerieProduto` ou `Lin_Peca`
-  - `Lin_DataCarregamento`
-  - `Lin_UsuarioCarregamento`
-  - `Lin_Status = "CARREGADO"`
-- recalcula `VolumesCarregados` no cabeçalho
-- atualiza status da NF conforme o saldo restante
-
-### 5) Consulta de volumes e histórico
-Na tela `scrConsulta`, a galeria apresenta todos os volumes vinculados à NF selecionada.
-
-A busca pode ser feita por:
-
-- número de série
-- peça
-- número do volume
-
-A lógica utiliza filtros condicionais:
-
-- se busca vazia: mostra todos os volumes da NF
-- se busca for numérica: filtra por `Lin_NumeroVolume` ou `Lin_SerieProduto`
-- se busca for texto: filtra por `Lin_SerieProduto` ou `Lin_Peca`
-
-A tela exibe informações como:
+A aplicação mantém um bom nível de rastreabilidade, pois grava:
 
 - data e hora do carregamento
-- tipo de produto
-- volume
-- status
-- possibilidade de estorno quando o status for `CARREGADO`
+- usuário que cadastrou o volume
+- data e motivo do estorno
+- usuário responsável pelo estorno
+- data, usuário e motivo do cancelamento
 
-### 6) Estorno de volume
-A funcionalidade de estorno é acionada na lista de consulta.
+Isso é importante para acompanhamento operacional, auditoria e suporte.
 
-Ao confirmar o estorno, o app:
+## Interface e comportamento visual
 
-- valida se houve preenchimento do motivo
-- valida se a linha existe e está com status `CARREGADO`
-- valida se a NF não está `CANCELADO`
-- executa `Patch` na `Expedicao_Linhas` alterando:
-  - `Lin_Status = "ESTORNADO"`
-  - `Lin_DataEstorno = Now()`
-  - `Lin_UsuarioEstorno = User().FullName`
-  - `Lin_MotivoEstorno = Trim(txtMotivoEstorno.Text)`
-- recalcula o total de volumes carregados da NF
-- recalcula o status do cabeçalho baseado no novo saldo
-- atualiza `DataCarregamento` somente quando a NF entra em condição concluída
+O app possui uma identidade visual consistente baseada em:
 
-A lógica da atualização do cabeçalho foi implementada com a seguinte regra de negócio:
-
-- se `VarVolumesCarregados - 1 >= VarCabecalho.Volumes` → status `CONCLUÍDO`
-- se `VarVolumesCarregados - 1 <= 0` → status `PENDENTE`
-- caso contrário → `EM CARREGAMENTO`
-
-### 7) Cancelamento de NF
-Na tela `scrPendentes`, o usuário pode cancelar uma NF quando ela ainda está em estado inicial.
-
-As condições para cancelamento:
-
-- NF deve estar `PENDENTE`
-- `VolumesCarregados` deve ser zero
-- não pode haver linhas com status `CARREGADO`
-
-Quando confirmada, a aplicação faz `Patch` em `expedicao_cabecalho` com:
-
-- `Status = {Value: "CANCELADO"}`
-- `MotivoCancelamento`
-- `DataCancelamento`
-- `UsuarioCancelamento`
-
-## Fluxo principal do usuário
-
-1. Acessa a tela inicial
-2. Cria ou seleciona uma NF
-3. Em `scrPendentes`, abre a NF para carregamento
-4. Na tela de carregamento, registra cada volume
-5. Acompanhar o saldo e status da NF
-6. Consultar histórico e estornar volumes se necessário
-7. Concluir a operação ou cancelar a NF antes do início do carregamento
-
-## Padrões visuais e UX
-
-O aplicativo usa uma identidade visual consistente baseada em:
-
-- cor principal: vermelho escuro (`RGBA(164, 38, 44, 1)`) 
-- fundo cinza claro (`RGBA(234, 234, 234, 1)`) 
+- fundo claro em cinza
+- elementos com bordas e destaque em vermelho escuro
 - fonte `Open Sans`
-- cards e listas com bordas vermelhas e destacado visual para itens selecionados
-- layout responsivo com regras específicas para telas pequenas (`App.Width < 600`)
+- botões com destaque para ações principais
+- layout adaptativo para desktop e mobile
 
-## Observações finais
+## Observações técnicas
 
-O código anexado demonstra que o app foi construído para controlar o processo de carregamento de produtos de forma operacional e com regras de integridade importantes, principalmente em relação a:
+Este repositório não é um projeto de código tradicional em Java, .NET, Python, Node.js ou React. Ele representa uma solução exportada do Microsoft Power Platform, contendo arquivos de metadados e artefatos de aplicação Canvas.
 
-- integridade de sequência de volumes
-- unicidade de séries ativas
-- manutenção do status da NF
-- controlo de estorno por volume
-- rastreabilidade de dados por usuário e motivo
+A manutenção da solução normalmente é feita em ambientes do Power Platform, seguindo o ciclo de:
 
-Este repositório, portanto, não é apenas um app visual, mas um conjunto de regras de negócio e fluxo operacional para gestão de expedição e carregamento de produtos em ambiente Power Platform.
+1. exportação da solução
+2. versionamento em Git
+3. revisão de mudanças
+4. importação em ambiente de destino
+
+## Recomendações de uso
+
+- manter versionamento de cada alteração da solução
+- validar regras de negócio antes de importação em produção
+- revisar os status das NFs em testes
+- revisar os campos de estorno e cancelamento antes de publicar
+- confirmar se a base de dados do ambiente contém as entidades e colunas esperadas
+
+## Conclusão
+
+Este projeto atende a um fluxo operacional prático e controlado de carregamento de produtos em uma nota fiscal, com regras de validação e rastreabilidade essenciais para uso em ambiente corporativo.
+
+A solução está organizada como um pacote de exportação da Power Platform, permitindo versionamento e manutenção em Git, além de facilitar a evolução do processo ao longo do tempo.
 
 ## Autor
 
 Raniere Pereira
 
-## Status
+## Status do projeto
 
-Repositório inicializado com a solução exportada e documentação funcional em evolução.
+Versão inicial da documentação funcional concluída, com base na análise dos arquivos exportados e do fluxo de telas identificado no repositório.
