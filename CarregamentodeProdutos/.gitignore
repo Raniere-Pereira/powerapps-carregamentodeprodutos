@@ -1,0 +1,14 @@
+﻿# Arquivos compactados e exportados da Power Platform
+*.zip
+*.msapp
+
+# Pastas de build, binários e temporários
+bin/
+obj/
+.vs/
+.vscode/
+*.tmp
+*.log
+
+# Relatórios de checagem/diagnóstico
+*.sarif

@@ -1,0 +1,10 @@
+# Arquivos compactados exportados
+*.zip
+*.msapp
+
+# Pastas de build e temporárias
+bin/
+obj/
+.vs/
+.vscode/
+*.tmp
