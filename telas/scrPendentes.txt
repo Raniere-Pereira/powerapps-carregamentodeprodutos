@@ -1,0 +1,136 @@
+scrPendentes:
+  tipo: Screen
+  propriedades:
+    Fill: =RGBA(234, 234, 234, 1)
+    LoadingSpinnerColor: =RGBA(164, 38, 44, 1)
+    OnVisible: |
+      =Refresh(expedicao_cabecalho);
+      Reset(txtBuscaPendentes);
+      Set(VarMostrarCancelamento, false);
+      Set(VarProcessandoCancelamento, false);
+      Set(VarNFParaEditar, Blank())
+  componentes:
+    - nome: lblTituloPendentes
+      tipo: Label@2.5.1
+      propriedades:
+        Text: ="Pendentes"
+    - nome: galPendentes
+      tipo: Gallery@2.15.0
+      variante: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+      propriedades:
+        BorderColor: =RGBA(89, 0, 0, 1)
+        Height: =Parent.Height - Self.Y - 20
+        Items: |
+          =If(
+              IsBlank(Trim(txtBuscaPendentes.Text)),
+              Sort(Filter(expedicao_cabecalho, Status.Value = "PENDENTE" || Status.Value = "EM CARREGAMENTO"), ID, SortOrder.Ascending),
+              IsNumeric(Trim(txtBuscaPendentes.Text)),
+              Sort(Filter(expedicao_cabecalho, (Status.Value = "PENDENTE" || Status.Value = "EM CARREGAMENTO") && NumeroNF = Value(Trim(txtBuscaPendentes.Text))), ID, SortOrder.Ascending),
+              Sort(Filter(expedicao_cabecalho, (Status.Value = "PENDENTE" || Status.Value = "EM CARREGAMENTO") && StartsWith(Cliente, Trim(txtBuscaPendentes.Text))), ID, SortOrder.Ascending)
+          )
+        TemplateSize: =If(App.Width < 600, 260, 120)
+        Width: =Parent.Width-30
+        X: =15
+        Y: =txtBuscaPendentes.Y + txtBuscaPendentes.Height + 10
+      filhos:
+        - nome: lbl_NF
+          tipo: Label@2.5.1
+          propriedades:
+            Text: |
+              ="NF: " & ThisItem.NumeroNF
+        - nome: lbl_clientes
+          tipo: Label@2.5.1
+          propriedades:
+            Text: |
+              ="CLIENTE: " & ThisItem.Cliente
+        - nome: lbl_volumes
+          tipo: Label@2.5.1
+          propriedades:
+            Text: |
+              ="Volumes: " & ThisItem.Volumes & "/" & ThisItem.VolumesCarregados
+        - nome: lbl_saldo
+          tipo: Label@2.5.1
+          propriedades:
+            Text: |
+              ="Saldo: " & (ThisItem.Volumes - ThisItem.VolumesCarregados)
+        - nome: lbl_status
+          tipo: Label@2.5.1
+          propriedades:
+            Text: |
+              ="Status: " & ThisItem.Status.Value
+        - nome: btnAbrirCarregamento
+          tipo: Classic/Button@2.2.0
+          propriedades:
+            Text: ="Carregar"
+            OnSelect: |
+              =Set(VarCabecalho, ThisItem);
+              Navigate(scrCarregamento, ScreenTransition.Fade)
+        - nome: btnCancelaNF
+          tipo: Classic/Button@2.2.0
+          propriedades:
+            Text: ="Cancelar NF"
+            Visible: =ThisItem.Status.Value = "PENDENTE" && ThisItem.VolumesCarregados = 0
+            OnSelect: |
+              =Set(VarNFParaCancelar, ThisItem);
+              Reset(txtMotivoCancelamento);
+              Set(VarMostrarCancelamento, true)
+        - nome: btnEditarNF
+          tipo: Classic/Button@2.2.0
+          propriedades:
+            Text: ="EditarNF"
+            Visible: =ThisItem.Status.Value = "PENDENTE" || ThisItem.Status.Value = "EM CARREGAMENTO"
+            OnSelect: |
+              =Set(VarNFParaEditar, ThisItem);
+              Navigate(scrNovaNF, ScreenTransition.Fade)
+    - nome: Rectangle1
+      tipo: Rectangle@2.3.0
+      propriedades:
+        Fill: =RGBA(0, 0, 0, 0.45)
+        Height: =Parent.Height
+        Visible: =VarMostrarCancelamento
+        Width: =Parent.Width
+    - nome: conCancelamento
+      tipo: GroupContainer@1.5.0
+      propriedades:
+        Visible: =VarMostrarCancelamento
+      filhos:
+        - nome: lblTituloCancelamento
+          tipo: Label@2.5.1
+          propriedades:
+            Text: ="Cancelar NF?"
+        - nome: lblNFCancelamento
+          tipo: Label@2.5.1
+          propriedades:
+            Text: |
+              ="NF: " & VarNFParaCancelar.NumeroNF
+        - nome: txtMotivoCancelamento
+          tipo: Classic/TextInput@2.3.2
+          propriedades:
+            HintText: ="Informe o motivo do cancelamento"
+            Mode: =TextMode.MultiLine
+        - nome: btnConfirmarCancelamento
+          tipo: Classic/Button@2.2.0
+          propriedades:
+            Text: ="Confirmar"
+            OnSelect: |
+              =If(
+                  !VarProcessandoCancelamento,
+                  Set(VarProcessandoCancelamento, true);
+                  If(
+                      IsBlank(Trim(txtMotivoCancelamento.Text)),
+                      Notify("Informe o motivo do cancelamento.", NotificationType.Warning),
+                      IfError(
+                          Patch(expedicao_cabecalho, VarNFParaCancelar, {Status: {Value: "CANCELADO"}, MotivoCancelamento: Trim(txtMotivoCancelamento.Text), DataCancelamento: Now(), UsuarioCancelamento: User().FullName}),
+                          Notify("Não foi possível cancelar a NF: " & FirstError.Message, NotificationType.Error),
+                          Notify("NF cancelada com sucesso.", NotificationType.Success)
+                      )
+                  );
+                  Refresh(expedicao_cabecalho);
+                  Set(VarMostrarCancelamento, false);
+                  Reset(txtMotivoCancelamento);
+                  Set(VarProcessandoCancelamento, false)
+              )
+    - nome: txtBuscaPendentes
+      tipo: Classic/TextInput@2.3.2
+      propriedades:
+        HintText: ="Buscar por nº da NF ou cliente"
