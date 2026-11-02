@@ -1,0 +1,1788 @@
+File name: Screens.txt
+Language: 
+Screens:
+  scrConsulta:
+    Properties:
+      Fill: =RGBA(234, 234, 234, 1)
+      LoadingSpinnerColor: =RGBA(164, 38, 44, 1)
+      OnVisible: |-
+        =Set(VarProcessandoEstorno, false);
+        Set(VarMostrarEstorno, false);
+        If(
+            !IsBlank(VarCabecalho),
+
+            Refresh(expedicao_cabecalho);
+            Refresh(Expedicao_Linhas);
+            Set(VarCabecalho, LookUp(expedicao_cabecalho, ID = VarCabecalho.ID))
+        )
+    Children:
+      - galConsulta:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            BorderThickness: =1
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =Parent.Height - Self.Y - 15
+            Items: |+
+              =
+              If(
+                  IsBlank(Trim(txt_busca_consulta.Text)),
+
+                  Sort(
+                      Filter(
+                          Expedicao_Linhas,
+                          Lin_CabecalhoID = VarCabecalho.ID
+                      ),
+                      Lin_NumeroVolume,
+                      SortOrder.Ascending
+                  ),
+
+                  IsNumeric(Trim(txt_busca_consulta.Text)),
+
+                  Sort(
+                      Filter(
+                          Expedicao_Linhas,
+                          Lin_CabecalhoID = VarCabecalho.ID &&
+                          (
+                              Lin_NumeroVolume = Value(Trim(txt_busca_consulta.Text)) ||
+                              Lin_SerieProduto = Trim(txt_busca_consulta.Text)
+                          )
+                      ),
+                      Lin_NumeroVolume,
+                      SortOrder.Ascending
+                  ),
+
+                  Sort(
+                      Filter(
+                          Expedicao_Linhas,
+                          Lin_CabecalhoID = VarCabecalho.ID &&
+                          (
+                              Lin_SerieProduto = Trim(txt_busca_consulta.Text) ||
+                              Lin_Peca = Trim(txt_busca_consulta.Text)
+                          )
+                      ),
+                      Lin_NumeroVolume,
+                      SortOrder.Ascending
+                  )
+              )
+            TemplateSize: =If(Self.Width > 420, 125, 175)
+            Width: =lblTituloGaleriaConsulta.Width
+            X: =lblTituloGaleriaConsulta.X
+            Y: =txt_busca_consulta.Y + txt_busca_consulta.Height + 6
+          Children:
+            - Title5:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =Self.Size * 1.8
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =14
+                  Text: |-
+                    =If(
+                        ThisItem.Lin_TipoProduto.Value = "Máquina",
+                        "Série: " & ThisItem.Lin_SerieProduto,
+                        "Peça: " & ThisItem.Lin_Peca
+                    )
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =If(Parent.TemplateWidth > 420, Parent.TemplateWidth / 2 - 24, Parent.TemplateWidth - 24)
+                  X: =12
+                  Y: =8
+            - Subtitle5:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =If(ThisItem.IsSelected, FontWeight.Semibold, FontWeight.Normal)
+                  Height: |+
+                    =22
+                  OnSelect: =Select(Parent)
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =12
+                  Text: |-
+                    ="Carregado em: " & Text(ThisItem.Lin_DataCarregamento, "dd/mm/yyyy hh:mm")
+                  VerticalAlign: =VerticalAlign.Top
+                  Width: =If(Parent.TemplateWidth > 420, Parent.TemplateWidth / 2 - 12, Parent.TemplateWidth - 24)
+                  X: =If(Parent.TemplateWidth > 420, Parent.TemplateWidth / 2, 12)
+                  Y: =If(Parent.TemplateWidth > 420, 8, 58)
+            - Separator5:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Height: =8
+                  OnSelect: =Select(Parent)
+                  Width: =Parent.TemplateWidth
+                  Y: =Parent.TemplateHeight - Self.Height
+            - Rectangle5:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Fill: =RGBA(89, 0, 0, 1)
+                  Height: =Parent.TemplateHeight - Separator5.Height
+                  OnSelect: =Select(Parent)
+                  Visible: =ThisItem.IsSelected
+                  Width: =4
+            - Subtitle5_1:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Color: =If(ThisItem.Lin_Status = "ESTORNADO", RGBA(164, 38, 44, 1), RGBA(50, 49, 48, 1))
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =22
+                  OnSelect: =Select(Parent)
+                  Size: =12
+                  Text: |-
+                    ="Status: " & ThisItem.Lin_Status
+                  Width: =If(Parent.TemplateWidth > 420, Parent.TemplateWidth / 2 - 12, Parent.TemplateWidth - 24)
+                  X: =If(Parent.TemplateWidth > 420, Parent.TemplateWidth / 2, 12)
+                  Y: =If(Parent.TemplateWidth > 420, 34, 82)
+            - Subtitle5_2:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =21
+                  OnSelect: =Select(Parent)
+                  Size: =12
+                  Text: |-
+                    ="Tipo: " & ThisItem.Lin_TipoProduto.Value
+                  Width: =If(Parent.TemplateWidth > 420, Parent.TemplateWidth / 2 - Self.X - 8, Parent.TemplateWidth - Self.X - 12)
+                  X: =Subtitle5_3.X + Subtitle5_3.Width + 8
+                  Y: =34
+            - Subtitle5_3:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =21
+                  OnSelect: =Select(Parent)
+                  Size: =12
+                  Text: |-
+                    ="Volume: " & ThisItem.Lin_NumeroVolume
+                  Width: =110
+                  X: =12
+                  Y: =34
+            - btnEstornar:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(164, 38, 44, 1)
+                  FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+                  Font: =Font.'Open Sans'
+                  Height: =36
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+                  OnSelect: |-
+                    =Set(VarLinhaEstorno, ThisItem);
+                    Reset(txtMotivoEstorno);
+                    Set(VarMostrarEstorno, true)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Size: =12
+                  Text: ="Estornar"
+                  Visible: =ThisItem.Lin_Status = "CARREGADO" && VarCabecalho.Status.Value <> "CANCELADO"
+                  Width: =If(Parent.TemplateWidth > 420, 140, Parent.TemplateWidth - 24)
+                  X: =12
+                  Y: =If(Parent.TemplateWidth > 420, 66, 110)
+            - Subtitle5_4:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =If(Parent.TemplateWidth > 420, 50, 60)
+                  OnSelect: =Select(Parent)
+                  Size: =11
+                  Text: |-
+                    =If(
+                        ThisItem.Lin_Status = "ESTORNADO",
+                        "Estornado em: " & Text(ThisItem.Lin_DataEstorno, "dd/mm/yyyy hh:mm") &
+                        " | Usuário: " & ThisItem.Lin_UsuarioEstorno &
+                        " | Motivo: " & ThisItem.Lin_MotivoEstorno,
+                        ""
+                    )
+                  Visible: =ThisItem.Lin_Status = "ESTORNADO"
+                  Width: =Parent.TemplateWidth - 24
+                  X: =12
+                  Y: =If(Parent.TemplateWidth > 420, 62, 106)
+      - recInfoConsulta:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            BorderThickness: =1
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =175
+            Width: =If(App.Width < 600, Parent.Width - 30, Max(320, (Parent.Width - 45) * 0.42))
+            X: =15
+            Y: =70
+      - recFundoEstorno:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Fill: =RGBA(0, 0, 0, 0.45)
+            Height: =Parent.Height
+            Visible: =VarMostrarEstorno
+            Width: =Parent.Width
+      - lblTituloConsulta:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =35
+            Size: =18
+            Text: ="CONSULTA"
+            Width: =Parent.Width - 30
+            X: =15
+            Y: =24
+      - btnVoltarConsulta:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(164, 38, 44, 1)
+            FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+            Font: =Font.'Open Sans'
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+            OnSelect: |-
+              =If(
+                  VarProcessandoEstorno,
+                  Notify("Aguarde o estorno terminar.", NotificationType.Warning),
+
+                  Set(VarMostrarEstorno, false);
+                  Reset(txtMotivoEstorno);
+                  If(
+                      VarCabecalho.Status.Value = "CONCLUÍDO",
+                      Navigate(scrConcluidas, ScreenTransition.Fade),
+                      Navigate(scrPendentes, ScreenTransition.Fade)
+                  )
+              )
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =12
+            Text: ="Voltar Consulta"
+            Width: =100
+            X: =15
+            Y: =24
+      - btnInicioConsulta:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(164, 38, 44, 1)
+            Font: =Font.'Open Sans'
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+            OnSelect: |-
+              =If(
+                  VarProcessandoEstorno,
+                  Notify("Aguarde o estorno terminar.", NotificationType.Warning),
+
+                  Set(VarMostrarEstorno, false);
+                  Reset(txtMotivoEstorno);
+                  Navigate(scrInicio, ScreenTransition.Fade)
+              )
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =12
+            Text: ="Início"
+            Width: =100
+            X: =Parent.Width - 115
+            Y: =24
+      - lblNFConsulta:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =24
+            Size: =15
+            Text: |-
+              ="NF: " & VarCabecalho.NumeroNF
+            Width: =recInfoConsulta.Width - 32
+            X: =recInfoConsulta.X + 16
+            Y: =recInfoConsulta.Y + 12
+      - lblClienteConsulta:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =24
+            Size: =15
+            Text: |-
+              ="Cliente: " & VarCabecalho.Cliente
+            Width: =lblNFConsulta.Width
+            X: =lblNFConsulta.X
+            Y: =lblNFConsulta.Y + 30
+      - lblVolumesConsulta:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Color: =RGBA(164, 38, 44, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =35
+            Size: =12
+            Text: |-
+              ="Volumes previstos: " & VarCabecalho.Volumes
+            Width: =lblNFConsulta.Width / 2
+            X: =lblNFConsulta.X
+            Y: =lblDataConclusaoConsulta.Y + 34
+      - lblVolumesCarregadosConsulta:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Color: =RGBA(164, 38, 44, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =35
+            Size: =12
+            Text: |-
+              ="Volumes carregados: " & VarCabecalho.VolumesCarregados
+            Width: =lblVolumesConsulta.Width
+            X: =lblVolumesConsulta.X + lblVolumesConsulta.Width
+            Y: =lblVolumesConsulta.Y
+      - lblStatusConsulta:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =24
+            Size: =15
+            Text: |-
+              ="Status: " & VarCabecalho.Status.Value
+            Width: =lblNFConsulta.Width
+            X: =lblNFConsulta.X
+            Y: =lblClienteConsulta.Y + 30
+      - lblDataConclusaoConsulta:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Height: =24
+            Text: |-
+              ="Concluída em: " &
+              If(
+                  IsBlank(VarCabecalho.DataCarregamento),
+                  "-",
+                  Text(VarCabecalho.DataCarregamento, "dd/mm/yyyy hh:mm")
+              )
+            Width: =lblNFConsulta.Width
+            X: =lblNFConsulta.X
+            Y: =lblStatusConsulta.Y + 30
+      - lblTituloGaleriaConsulta:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Color: =RGBA(50, 49, 48, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =24
+            Size: =15
+            Text: ="Histórico de volumes (" & CountRows(galConsulta.AllItems) & ")"
+            Width: =If(App.Width < 600, Parent.Width - 30, Parent.Width - Self.X - 15)
+            X: =If(App.Width < 600, 15, recInfoConsulta.X + recInfoConsulta.Width + 15)
+            Y: =If(App.Width < 600, recInfoConsulta.Y + recInfoConsulta.Height + 15, recInfoConsulta.Y)
+      - lblGaleriaVaziaConsulta:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Color: =RGBA(120, 120, 120, 1)
+            Font: =Font.'Open Sans'
+            Height: =24
+            Italic: =true
+            Size: =12
+            Text: ="Nenhum volume registrado para esta NF."
+            Visible: =CountRows(galConsulta.AllItems) = 0
+            Width: =galConsulta.Width
+            X: =galConsulta.X
+            Y: =galConsulta.Y + 20
+      - conEstorno:
+          Control: GroupContainer@1.5.0
+          Variant: AutoLayout
+          Properties:
+            BorderThickness: =1
+            DropShadow: =DropShadow.Bold
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =Min(Parent.Height - 32, 360)
+            LayoutAlignItems: =LayoutAlignItems.Stretch
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =8
+            PaddingBottom: =16
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =16
+            Visible: =VarMostrarEstorno
+            Width: =Min(Parent.Width - 32, 420)
+            X: =(Parent.Width - Self.Width) / 2
+            Y: =(Parent.Height - Self.Height) / 2
+          Children:
+            - lblTituloEstorno:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  LayoutMinHeight: =28
+                  LayoutMinWidth: =16
+                  Size: =If(App.Width < 600, 16, 18)
+                  Text: ="CONFIRMAR ESTORNO"
+            - lblVolumeEstorno:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  LayoutMinHeight: =24
+                  LayoutMinWidth: =16
+                  Text: |-
+                    ="Volume: " & VarLinhaEstorno.Lin_NumeroVolume
+            - lblIdentificacaoEstorno:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  LayoutMinHeight: =24
+                  LayoutMinWidth: =16
+                  Text: |-
+                    =If(
+                        VarLinhaEstorno.Lin_TipoProduto.Value = "Máquina",
+                        "Série: " & VarLinhaEstorno.Lin_SerieProduto,
+                        "Peça: " & VarLinhaEstorno.Lin_Peca
+                    )
+            - txtMotivoEstorno:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Default: =""
+                  FillPortions: =1
+                  Font: =Font.'Open Sans'
+                  HintText: ="Informe o motivo do estorno"
+                  HoverBorderColor: =RGBA(89, 0, 0, 1)
+                  HoverFill: =RGBA(222, 179, 184, 1)
+                  LayoutMinHeight: =80
+                  LayoutMinWidth: =16
+                  Mode: =TextMode.MultiLine
+            - btnConfirmarEstorno:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  DisplayMode: =If(VarProcessandoEstorno, DisplayMode.Disabled, DisplayMode.Edit)
+                  Fill: =RGBA(164, 38, 44, 1)
+                  FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+                  Font: =Font.'Open Sans'
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+                  LayoutMinHeight: =44
+                  LayoutMinWidth: =16
+                  OnSelect: |-
+                    =If(
+                        !VarProcessandoEstorno,
+
+                        Set(VarProcessandoEstorno, true);
+                        Refresh(expedicao_cabecalho);
+                        Refresh(Expedicao_Linhas);
+                        Set(VarCabecalho, LookUp(expedicao_cabecalho, ID = VarCabecalho.ID));
+                        Set(VarLinhaEstorno, LookUp(Expedicao_Linhas, ID = VarLinhaEstorno.ID));
+                        ClearCollect(
+                            colLinhasNF,
+                            Filter(
+                                Expedicao_Linhas,
+                                Lin_CabecalhoID = VarCabecalho.ID && Lin_Status = "CARREGADO"
+                            )
+                        );
+                        Set(VarVolumesCarregados, CountRows(colLinhasNF));
+
+                        If(
+                            IsBlank(Trim(txtMotivoEstorno.Text)),
+                            Notify("Informe o motivo do estorno.", NotificationType.Warning),
+
+                            IsBlank(VarLinhaEstorno) || VarLinhaEstorno.Lin_Status <> "CARREGADO",
+                            Notify("Este volume não está com status CARREGADO.", NotificationType.Warning),
+
+                            VarCabecalho.Status.Value = "CANCELADO",
+                            Notify("Esta NF está cancelada e não permite estorno.", NotificationType.Warning),
+
+                            IfError(
+                                Patch(
+                                    Expedicao_Linhas,
+                                    VarLinhaEstorno,
+                                    {
+                                        Lin_Status: "ESTORNADO",
+                                        Lin_DataEstorno: Now(),
+                                        Lin_UsuarioEstorno: User().FullName,
+                                        Lin_MotivoEstorno: Trim(txtMotivoEstorno.Text)
+                                    }
+                                ),
+                                Notify("Não foi possível realizar o estorno do volume: " & FirstError.Message, NotificationType.Error),
+
+                                Patch(
+                                    expedicao_cabecalho,
+                                    LookUp(expedicao_cabecalho, ID = VarCabecalho.ID),
+                                    {
+                                        VolumesCarregados: VarVolumesCarregados - 1,
+                                        Status: {
+                                            Value: If(
+                                                VarVolumesCarregados - 1 >= VarCabecalho.Volumes, "CONCLUÍDO",
+                                                VarVolumesCarregados - 1 <= 0, "PENDENTE",
+                                                "EM CARREGAMENTO"
+                                            )
+                                        },
+                                        DataCarregamento: If(VarVolumesCarregados - 1 >= VarCabecalho.Volumes, Now(), Blank())
+                                    }
+                                ),
+                                Notify("Volume estornado, mas houve erro ao atualizar a NF: " & FirstError.Message, NotificationType.Error),
+                                Notify("Estorno realizado com sucesso.", NotificationType.Success)
+                            )
+                        );
+
+                        Refresh(expedicao_cabecalho);
+                        Refresh(Expedicao_Linhas);
+                        Set(VarCabecalho, LookUp(expedicao_cabecalho, ID = VarCabecalho.ID));
+                        ClearCollect(
+                            colLinhasNF,
+                            Filter(
+                                Expedicao_Linhas,
+                                Lin_CabecalhoID = VarCabecalho.ID && Lin_Status = "CARREGADO"
+                            )
+                        );
+                        Set(VarVolumesCarregados, CountRows(colLinhasNF));
+                        Set(VarMostrarEstorno, false);
+                        Reset(txtMotivoEstorno);
+                        Set(VarProcessandoEstorno, false)
+                    )
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Text: ="Confirmar"
+            - btnCancelarEstorno:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(164, 38, 44, 1)
+                  FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+                  Font: =Font.'Open Sans'
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+                  LayoutMinHeight: =44
+                  LayoutMinWidth: =16
+                  OnSelect: |-
+                    =Set(VarMostrarEstorno, false);
+                    Reset(txtMotivoEstorno)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Text: ="Cancelar"
+      - txt_busca_consulta:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Default: =""
+            Font: =Font.'Open Sans'
+            HintText: ="Digite o Número de Série ou Peça"
+            HoverBorderColor: =RGBA(89, 0, 0, 1)
+            HoverFill: =RGBA(222, 179, 184, 1)
+            Width: =lblTituloGaleriaConsulta.Width
+            X: =If(App.Width < 600, 15, recInfoConsulta.X + recInfoConsulta.Width + 15)
+            Y: =100
+Screens:
+  scrConcluidas:
+    Properties:
+      Fill: =RGBA(234, 234, 234, 1)
+      LoadingSpinnerColor: =RGBA(164, 38, 44, 1)
+      OnVisible: =Refresh(expedicao_cabecalho)
+    Children:
+      - galConcluidas:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Height: =Parent.Height - Self.Y - 20
+            Items: |-
+              =If(
+                  IsBlank(Trim(txtBuscaConcluidas.Text)),
+                  Sort(
+                      Filter(expedicao_cabecalho, Status.Value = "CONCLUÍDO" || Status.Value = "EM CARREGAMENTO"),
+                      DataCarregamento,
+                      SortOrder.Descending
+                  ),
+
+                  IsNumeric(Trim(txtBuscaConcluidas.Text)),
+                  Sort(
+                      Filter(
+                          expedicao_cabecalho,
+                          Status.Value = "CONCLUÍDO" && NumeroNF = Value(Trim(txtBuscaConcluidas.Text))
+                      ),
+                      DataCarregamento,
+                      SortOrder.Descending
+                  ),
+
+                  Sort(
+                      Filter(
+                          expedicao_cabecalho,
+                          Status.Value = "CONCLUÍDO" && StartsWith(Cliente, Trim(txtBuscaConcluidas.Text))
+                      ),
+                      DataCarregamento,
+                      SortOrder.Descending
+                  )
+              )
+            TemplateSize: =If(App.Width < 600, 250, 120)
+            Width: =Parent.Width-30
+            X: =15
+            Y: =txtBuscaConcluidas.Y + txtBuscaConcluidas.Height + 10
+          Children:
+            - Rectangle2_1:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Fill: =RGBA(89, 0, 0, 1)
+                  Height: =Parent.TemplateHeight - Separator2_1.Height
+                  Visible: =ThisItem.IsSelected
+                  Width: =4
+            - lblNFConcluidas:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =24
+                  OnSelect: =Select(Parent)
+                  Size: =15
+                  Text: |-
+                    ="NF: " & ThisItem.NumeroNF
+                  Width: =If(App.Width < 600, Parent.TemplateWidth - 24, 201)
+                  X: =If(App.Width < 600, 10, 76)
+                  Y: =10
+            - lblClientesConcluidas:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =23
+                  OnSelect: =Select(Parent)
+                  Size: =15
+                  Text: |-
+                    ="CLIENTE: " & ThisItem.Cliente
+                  Width: =If(App.Width < 600, Parent.TemplateWidth - 24, 201)
+                  X: =If(App.Width < 600, 10, 210)
+                  Y: =If(App.Width < 600, 85, 10)
+            - Separator2_1:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Fill: =RGBA(89, 0, 0, 1)
+                  Height: =8
+                  OnSelect: =Select(Parent)
+                  Width: =Parent.TemplateWidth
+                  Y: =Parent.TemplateHeight - Self.Height
+            - lblVolumesConcluidas:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =22
+                  OnSelect: =Select(Parent)
+                  Text: |-
+                    ="Volumes: " & ThisItem.Volumes
+                  Width: =If(App.Width < 600, (Parent.TemplateWidth - 20) / 2, 170)
+                  X: =If(App.Width < 600, 10, 76)
+                  Y: =If(App.Width < 600, 120, 90)
+            - lblCarregadosConcluidas:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =22
+                  OnSelect: =Select(Parent)
+                  Text: |-
+                    ="Carregados: " & ThisItem.VolumesCarregados
+                  Width: =If(App.Width < 600, (Parent.TemplateWidth - 20) / 2, 181)
+                  X: =If(App.Width < 600, 10 + (Parent.TemplateWidth - 20) / 2, 250)
+                  Y: =If(App.Width < 600, 120, 90)
+            - lblDataConcluidas:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =50
+                  OnSelect: =Select(Parent)
+                  Text: |-
+                    ="Concluída em: " & If(IsBlank(ThisItem.DataCarregamento), "-", Text(ThisItem.DataCarregamento, "dd/mm/yyyy hh:mm"))
+                  Width: =If(App.Width < 600, Parent.TemplateWidth - 24, Max(140, Parent.TemplateWidth - 431 - 140))
+                  X: =If(App.Width < 600, 10, 431)
+                  Y: =If(App.Width < 600, 140, lblNFConcluidas.Y + lblNFConcluidas.Height + 5)
+            - lblStatusConcluidas:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =24
+                  OnSelect: =Select(Parent)
+                  Size: =15
+                  Text: |-
+                    ="Status: " & ThisItem.Status.Value
+                  Width: =If(App.Width < 600, Parent.TemplateWidth - 24, 300)
+                  X: =If(App.Width < 600, 10, lblNFConcluidas.X)
+                  Y: =lblNFConcluidas.Y + lblNFConcluidas.Height + 18
+            - btnConsultarConcluidas:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(164, 38, 44, 1)
+                  FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+                  Font: =Font.'Open Sans'
+                  Height: =50
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+                  OnSelect: |-
+                    =Set(VarCabecalho, ThisItem);
+                    Navigate(scrConsulta, ScreenTransition.Fade)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Size: =If(App.Width < 600, 12, 8)
+                  Text: ="Consultar"
+                  Width: =If(App.Width < 600, Parent.TemplateWidth - 24, 100)
+                  X: =If(App.Width < 600, 12, Parent.TemplateWidth - 129)
+                  Y: =If(App.Width < 600, 190, 10)
+      - lblTituloConcluidas:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Right
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =35
+            Size: =17
+            Text: ="NFs Carregadas"
+            Width: =Parent.Width - 30
+            X: =15
+            Y: =24
+      - btnInicioConcluidas:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(164, 38, 44, 1)
+            FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+            Font: =Font.'Open Sans'
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+            OnSelect: =Navigate(scrInicio, ScreenTransition.Fade)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =8
+            Text: ="Página Inicial"
+            Width: =100
+            X: =15
+            Y: =24
+      - btnConcluidasNFsPendentes:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(164, 38, 44, 1)
+            FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+            Font: =Font.'Open Sans'
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+            OnSelect: =Navigate(scrPendentes, ScreenTransition.Fade)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =8
+            Text: ="NFs Pendentes"
+            Width: =100
+            X: =128
+            Y: =24
+      - lblConcluidasVazia:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Color: =RGBA(120, 120, 120, 1)
+            Font: =Font.'Open Sans'
+            Italic: =true
+            Text: ="Nenhuma NF concluída."
+            Visible: =CountRows(galConcluidas.AllItems) = 0
+            Width: =Parent.Width - 30
+            X: =30
+            Y: =galConcluidas.Y + 20
+      - txtBuscaConcluidas:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Default: =""
+            DelayOutput: =true
+            Font: =Font.'Open Sans'
+            HintText: ="Buscar por nº da NF ou cliente"
+            HoverBorderColor: =RGBA(89, 0, 0, 1)
+            HoverFill: =RGBA(222, 179, 184, 1)
+            Width: =Parent.Width - 30
+            X: =15
+            Y: =70
+Screens:
+  scrCarregamento:
+    Properties:
+      Fill: =RGBA(234, 234, 234, 1)
+      LoadingSpinnerColor: =RGBA(164, 38, 44, 1)
+      OnVisible: |-
+        =Set(VarProcessando, false);
+        Set(VarAba, "REGISTRO");
+        If(
+            !IsBlank(VarCabecalho),
+
+            Refresh(expedicao_cabecalho);
+            Refresh(Expedicao_Linhas);
+            Set(VarCabecalho, LookUp(expedicao_cabecalho, ID = VarCabecalho.ID));
+            ClearCollect(
+                colLinhasNF,
+                Filter(
+                    Expedicao_Linhas,
+                    Lin_CabecalhoID = VarCabecalho.ID && Lin_Status = "CARREGADO"
+                )
+            );
+            Set(VarVolumesCarregados, CountRows(colLinhasNF));
+            Set(
+                VarProximoVolume,
+                Coalesce(
+                    First(
+                        Sort(
+                            Filter(
+                                Sequence(VarCabecalho.Volumes) As Vol,
+                                !(Vol.Value in colLinhasNF.Lin_NumeroVolume)
+                            ),
+                            Value,
+                            SortOrder.Ascending
+                        )
+                    ).Value,
+                    0
+                )
+            )
+        )
+    Children:
+      - recRegistro:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            BorderThickness: =1
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =255
+            Visible: =App.Width >= 600 || VarAba = "REGISTRO"
+            Width: =recInfo.Width
+            X: =recInfo.X
+            Y: =If(App.Width < 600, btnAbaRegistro.Y + btnAbaRegistro.Height + 10, recInfo.Y + recInfo.Height + 15)
+      - recInfo:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            BorderThickness: =1
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =185
+            Width: =If(App.Width < 600, Parent.Width - 30, Max(320, (Parent.Width - 45) * 0.42))
+            X: =15
+            Y: =83
+      - lblTituloCarregamento:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =35
+            Size: =18
+            Text: ="Carregamento"
+            Width: =Parent.Width - 30
+            X: =15
+            Y: =43
+      - lblNF:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =24
+            Size: =15
+            Text: |-
+              ="NF: " & VarCabecalho.NumeroNF
+            Width: =recInfo.Width - 32
+            X: =recInfo.X + 16
+            Y: =recInfo.Y + 12
+      - lblCliente:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =24
+            Size: =15
+            Text: |-
+              ="Cliente: " & VarCabecalho.Cliente
+            Width: =lblNF.Width
+            X: =lblNF.X
+            Y: =lblNF.Y + lblNF.Height + 6
+      - lblVolumes:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            Text: |-
+              ="Volumes previstos: " & VarCabecalho.Volumes
+            Visible: =false
+            X: =182
+            Y: =213
+      - lblVolumesCarregados:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            Text: |-
+              ="Volumes carregados: " & VarVolumesCarregados
+            Visible: =false
+            X: =31
+            Y: =217
+      - lbl_Saldos:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Color: =RGBA(164, 38, 44, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =24
+            Size: =15
+            Text: |-
+              ="Saldo: " & (VarCabecalho.Volumes - VarVolumesCarregados)
+            X: =lblResumoVolume.X + lblResumoVolume.Width + 8
+            Y: =lblResumoVolume.Y
+      - drpTipoProduto:
+          Control: Classic/ComboBox@2.4.0
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            ChevronBackground: =RGBA(164, 38, 44, 1)
+            ChevronFill: =RGBA(255, 255, 255, 1)
+            DefaultSelectedItems: =["Máquina"]
+            DisplayFields: =["Value"]
+            Font: =Font.'Open Sans'
+            HoverFill: =RGBA(222, 179, 184, 1)
+            IsSearchable: =false
+            Items: =["Peça","Máquina"]
+            OnChange: |-
+              =Reset(txtSerieProduto);
+              Reset(txtPeca)
+            PressedColor: =RGBA(255, 255, 255, 1)
+            PressedFill: =RGBA(89, 0, 0, 1)
+            SearchFields: =["Value"]
+            SelectMultiple: =false
+            SelectionColor: =RGBA(255, 255, 255, 1)
+            SelectionFill: =RGBA(164, 38, 44, 1)
+            Size: =12
+            Visible: =App.Width >= 600 || VarAba = "REGISTRO"
+            Width: =lblTituloRegistro.Width
+            X: =lblTituloRegistro.X
+            Y: =lblTipoProduto.Y + lblTipoProduto.Height + 2
+      - txtSerieProduto:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Default: =""
+            Font: =Font.'Open Sans'
+            HintText: ="Digite o número de série"
+            HoverBorderColor: =RGBA(89, 0, 0, 1)
+            HoverFill: =RGBA(222, 179, 184, 1)
+            Size: =12
+            Visible: =(App.Width >= 600 || VarAba = "REGISTRO") && drpTipoProduto.Selected.Value = "Máquina"
+            Width: =lblTituloRegistro.Width
+            X: =lblTituloRegistro.X
+            Y: =lblSerieProduto.Y + lblSerieProduto.Height + 2
+      - txtPeca:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Default: =""
+            Font: =Font.'Open Sans'
+            HintText: ="Informe a peça/conteúdo do volume"
+            HoverBorderColor: =RGBA(89, 0, 0, 1)
+            HoverFill: =RGBA(222, 179, 184, 1)
+            Size: =12
+            Visible: =(App.Width >= 600 || VarAba = "REGISTRO") && drpTipoProduto.Selected.Value = "Peça"
+            Width: =lblTituloRegistro.Width
+            X: =lblTituloRegistro.X
+            Y: =txtSerieProduto.Y
+      - lblProximoVolume:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Color: =RGBA(164, 38, 44, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =32
+            Size: =16
+            Text: |-
+              ="Próximo volume: " & If(VarProximoVolume > 0, Text(VarProximoVolume), "—")
+            Width: =lblNF.Width
+            X: =lblNF.X
+            Y: =lblResumoVolume.Y + 45
+      - btnRegistrarVolume:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: =If(VarProcessando || IsBlank(VarCabecalho), DisplayMode.Disabled, DisplayMode.Edit)
+            Fill: =RGBA(164, 38, 44, 1)
+            FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+            Font: =Font.'Open Sans'
+            Height: =44
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+            OnSelect: |-
+              =If(
+                  !VarProcessando,
+                  Set(VarProcessando,true);
+                  Refresh(expedicao_cabecalho);
+                  Refresh(Expedicao_Linhas);
+                  Set(VarCabecalho, LookUp(expedicao_cabecalho, ID = VarCabecalho.ID));
+                  ClearCollect(colLinhasNF, Filter(Expedicao_Linhas, Lin_CabecalhoID = VarCabecalho.ID && Lin_Status = "CARREGADO"));
+                  Set(VarVolumesCarregados, CountRows(colLinhasNF));
+                  Set(VarProximoVolume, Coalesce(First(Sort(Filter(Sequence(VarCabecalho.Volumes) As Vol, !(Vol.Value in colLinhasNF.Lin_NumeroVolume)), Value, SortOrder.Ascending)).Value, 0));
+                  If(
+                      VarCabecalho.Status.Value = "CONCLUÍDO" || VarCabecalho.Status.Value = "CANCELADO",
+                      Notify("Esta NF não permite novos carregamentos.", NotificationType.Warning),
+                      IsBlank(drpTipoProduto.Selected.Value),
+                      Notify("Selecione o tipo de produto.", NotificationType.Warning),
+                      drpTipoProduto.Selected.Value = "Máquina" && IsBlank(Trim(txtSerieProduto.Text)),
+                      Notify("Informe o número de série da máquina.", NotificationType.Warning),
+                      drpTipoProduto.Selected.Value = "Máquina" && !IsNumeric(Trim(txtSerieProduto.Text)),
+                      Notify("A série deve conter apenas números.", NotificationType.Warning),
+                      drpTipoProduto.Selected.Value = "Peça" && IsBlank(Trim(txtPeca.Text)),
+                      Notify("Informe a peça.", NotificationType.Warning),
+                      VarProximoVolume = 0 || VarVolumesCarregados >= VarCabecalho.Volumes,
+                      Notify("Todos os volumes desta NF já foram carregados.", NotificationType.Warning),
+                      drpTipoProduto.Selected.Value = "Máquina" && !IsBlank(LookUp(Expedicao_Linhas, Lin_SerieProduto = Value(Trim(txtSerieProduto.Text)) && Lin_Status = "CARREGADO")),
+                      Notify("Esta série já possui um carregamento ativo.", NotificationType.Warning),
+                      !IsBlank(LookUp(Expedicao_Linhas, Lin_ChaveVolume = Text(VarCabecalho.NumeroNF) & "-" & Text(VarProximoVolume) && Lin_Status = "CARREGADO")),
+                      Notify("O volume que será registrado já possui um carregamento ativo.", NotificationType.Warning),
+                      IfError(
+                          Patch(Expedicao_Linhas, Defaults(Expedicao_Linhas), {Lin_CabecalhoID: VarCabecalho.ID, Lin_NumeroNF: VarCabecalho.NumeroNF, Lin_NumeroVolume: VarProximoVolume, Lin_ChaveVolume: Text(VarCabecalho.NumeroNF) & "-" & Text(VarProximoVolume), Lin_TipoProduto: {Value: drpTipoProduto.Selected.Value}, Lin_SerieProduto: If(drpTipoProduto.Selected.Value = "Máquina", Value(Trim(txtSerieProduto.Text)), Blank()), Lin_Peca: If(drpTipoProduto.Selected.Value = "Peça", Trim(txtPeca.Text), Blank()), Lin_DataCarregamento: Now(), Lin_UsuarioCarregamento: User().FullName, Lin_Status: "CARREGADO"}),
+                          Notify("Erro ao registrar o volume: " & FirstError.Message, NotificationType.Error),
+                          Patch(expedicao_cabecalho, LookUp(expedicao_cabecalho, ID = VarCabecalho.ID), {VolumesCarregados: VarVolumesCarregados + 1, Status: LookUp(Choices(expedicao_cabecalho.Status), Value = If(VarVolumesCarregados + 1 >= VarCabecalho.Volumes, "CONCLUÍDO", "EM CARREGAMENTO")), DataCarregamento: If(VarVolumesCarregados + 1 >= VarCabecalho.Volumes, Now(), Blank())}),
+                          Notify("Volume registrado, mas houve erro ao atualizar a NF: " & FirstError.Message, NotificationType.Error),
+                          Notify("Volume " & Text(VarProximoVolume) & " registrado com sucesso.", NotificationType.Success);
+                          Reset(txtSerieProduto);
+                          Reset(txtPeca);
+                          If(drpTipoProduto.Selected.Value = "Máquina", SetFocus(txtSerieProduto), SetFocus(txtPeca))
+                      )
+                  );
+                  Refresh(expedicao_cabecalho);
+                  Refresh(Expedicao_Linhas);
+                  Set(VarCabecalho, LookUp(expedicao_cabecalho, ID = VarCabecalho.ID));
+                  ClearCollect(colLinhasNF, Filter(Expedicao_Linhas, Lin_CabecalhoID = VarCabecalho.ID && Lin_Status = "CARREGADO"));
+                  Set(VarVolumesCarregados, CountRows(colLinhasNF));
+                  Set(VarProximoVolume, Coalesce(First(Sort(Filter(Sequence(VarCabecalho.Volumes) As Vol, !(Vol.Value in colLinhasNF.Lin_NumeroVolume)), Value, SortOrder.Ascending)).Value, 0));
+                  Set(VarProcessando, false)
+              )
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Text: ="REGISTRAR VOLUME"
+            Visible: =App.Width >= 600 || VarAba = "REGISTRO"
+            Width: =lblTituloRegistro.Width
+            X: =lblTituloRegistro.X
+            Y: =txtSerieProduto.Y + txtSerieProduto.Height + 14
+      - lbl_Status:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =24
+            Size: =15
+            Text: |-
+              ="Status: " &
+              If(
+                  VarCabecalho.Status.Value = "CANCELADO",
+                  VarCabecalho.Status.Value,
+                  VarVolumesCarregados >= VarCabecalho.Volumes,
+                  "CONCLUÍDO",
+                  VarVolumesCarregados > 0,
+                  "EM CARREGAMENTO",
+                  VarCabecalho.Status.Value
+              )
+            Width: =lblNF.Width
+            X: =lblNF.X
+            Y: =lblCliente.Y + 30
+      - lblResumoVolume:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Color: =RGBA(164, 38, 44, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =40
+            Size: =15
+            Text: |-
+              ="Volumes carregados: " & VarVolumesCarregados & " / " & VarCabecalho.Volumes
+            Width: =(lblCliente.Width - 8) * 60 / 100
+            X: =recInfo.X + 16
+            Y: =lbl_Status.Y + 34
+      - galCarregamento:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            BorderThickness: =1
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =Parent.Height - Self.Y - 15
+            Items: =Sort(colLinhasNF, Lin_NumeroVolume, SortOrder.Ascending)
+            TemplateSize: =If(Self.Width > 420, 70, 95)
+            Visible: =App.Width >= 600 || VarAba = "VOLUMES"
+            Width: =If(App.Width < 600, Parent.Width - 30, Parent.Width - Self.X - 15)
+            X: =If(App.Width < 600, 15, recInfo.X + recInfo.Width + 15)
+            Y: =If(App.Width < 600, btnAbaRegistro.Y + btnAbaRegistro.Height + 10, lblTituloGalCarregamento.Y + lblTituloGalCarregamento.Height + 6)
+          Children:
+            - lblgalSeriePeca:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =Self.Size * 1.8
+                  OnSelect: =Select(Parent)
+                  Size: =14
+                  Text: |-
+                    =If(
+                        ThisItem.Lin_TipoProduto.Value = "Máquina",
+                        "Série: " & ThisItem.Lin_SerieProduto,
+                        "Peça: " & ThisItem.Lin_Peca
+                    )
+                  Width: =Parent.TemplateWidth - 24
+                  X: =12
+                  Y: =8
+            - lblgalVolume:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =If(ThisItem.IsSelected, FontWeight.Semibold, FontWeight.Normal)
+                  Height: =Self.Size * 1.8
+                  OnSelect: =Select(Parent)
+                  Size: =12
+                  Text: |-
+                    ="Volume: " & ThisItem.Lin_NumeroVolume
+                  Width: =100
+                  X: =12
+                  Y: =36
+            - Separator3:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Height: =8
+                  OnSelect: =Select(Parent)
+                  Width: =Parent.TemplateWidth
+                  Y: =Parent.TemplateHeight - Self.Height
+            - Rectangle3:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Fill: =RGBA(89, 0, 0, 1)
+                  Height: =Parent.TemplateHeight - Separator3.Height
+                  OnSelect: =Select(Parent)
+                  Visible: =ThisItem.IsSelected
+                  Width: =4
+            - Subtitle3_1:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Self.Size * 1.8
+                  OnSelect: =Select(Parent)
+                  Text: |-
+                    ="Carregado em: " & Text(ThisItem.Lin_DataCarregamento, "dd/mm/yyyy hh:mm")
+                  Width: =If(Parent.TemplateWidth > 420, Parent.TemplateWidth / 2 - 12, Parent.TemplateWidth - 24)
+                  X: =If(Parent.TemplateWidth > 420, Parent.TemplateWidth / 2, 12)
+                  Y: =If(Parent.TemplateWidth > 420, lblgalVolume.Y, lblgalVolume.Y + 24)
+            - Subtitle3_2:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =Self.Size * 1.8
+                  OnSelect: =Select(Parent)
+                  Size: =12
+                  Text: |-
+                    ="Tipo: " & ThisItem.Lin_TipoProduto.Value
+                  Width: =If(Parent.TemplateWidth > 420, Parent.TemplateWidth / 2 - Self.X - 8, Parent.TemplateWidth - Self.X - 12)
+                  X: =lblgalVolume.X + lblgalVolume.Width + 8
+                  Y: =lblgalVolume.Y
+      - btnCarregamentoVoltarPendentes:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(164, 38, 44, 1)
+            FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+            Font: =Font.'Open Sans'
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+            OnSelect: |-
+              =If(
+                  VarProcessando,
+                  Notify("Aguarde o registro do volume terminar.", NotificationType.Warning),
+                  Reset(txtSerieProduto);
+                  Reset(txtPeca);
+                  Navigate(scrPendentes, ScreenTransition.Fade)
+              )
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =12
+            Text: ="Pendentes"
+            Width: =100
+            X: =15
+            Y: =11
+      - btnCarregamentoVoltarConcluidas:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(164, 38, 44, 1)
+            FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+            Font: =Font.'Open Sans'
+            Height: =35
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+            OnSelect: |-
+              =If(
+                  VarProcessando,
+                  Notify("Aguarde o registro do volume terminar.", NotificationType.Warning),
+                  Reset(txtSerieProduto);
+                  Reset(txtPeca);
+                  Navigate(scrConcluidas, ScreenTransition.Fade)
+              )
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =12
+            Text: ="Concluídas"
+            Width: =100
+            X: =Parent.Width - 115
+            Y: =11
+      - lblPecaProduto:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Color: =RGBA(50, 49, 48, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =20
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =12
+            Text: ="Conteúdo do Volume de Peça*"
+            Visible: =(App.Width >= 600 || VarAba = "REGISTRO") && drpTipoProduto.Selected.Value = "Peça"
+            Width: =lblTituloRegistro.Width
+            X: =lblTituloRegistro.X
+            Y: =lblSerieProduto.Y
+      - lblTituloRegistro:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Color: =RGBA(50, 49, 48, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =24
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Size: =15
+            Text: ="Registro de Volume"
+            Visible: =App.Width >= 600 || VarAba = "REGISTRO"
+            Width: =recRegistro.Width - 32
+            X: =recRegistro.X + 16
+            Y: =recRegistro.Y + 12
+      - lblTipoProduto:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Color: =RGBA(50, 49, 48, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =20
+            Size: =12
+            Text: ="Tipo de Produto*"
+            Visible: =App.Width >= 600 || VarAba = "REGISTRO"
+            Width: =lblTituloRegistro.Width
+            X: =lblTituloRegistro.X
+            Y: =lblTituloRegistro.Y + lblTituloRegistro.Height + 8
+      - lblSerieProduto:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Color: =RGBA(50, 49, 48, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =20
+            Size: =12
+            Text: ="Nº de Série*"
+            Visible: =(App.Width >= 600 || VarAba = "REGISTRO") && drpTipoProduto.Selected.Value = "Máquina"
+            Width: =lblTituloRegistro.Width
+            X: =lblTituloRegistro.X
+            Y: =drpTipoProduto.Y + drpTipoProduto.Height + 10
+      - lblTituloGalCarregamento:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =24
+            Size: =15
+            Text: ="Volumes carregados (" & VarVolumesCarregados & ")"
+            Visible: =App.Width >= 600
+            Width: =If(App.Width < 600, Parent.Width - 30, Parent.Width - Self.X - 15)
+            X: =If(App.Width < 600, 15, recInfo.X + recInfo.Width + 15)
+            Y: =If(App.Width < 600, recRegistro.Y + recRegistro.Height + 15, recInfo.Y)
+      - lblTituloGalVazia:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =24
+            Italic: =true
+            Size: =12
+            Text: ="Nenhum volume carregado ainda."
+            Visible: =CountRows(colLinhasNF) = 0 && (App.Width >= 600 || VarAba = "VOLUMES")
+            Width: =galCarregamento.Width
+            X: =galCarregamento.X
+            Y: =galCarregamento.Y + 24
+      - btnAbaRegistro:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =RGBA(164, 38, 44, 1)
+            Color: =If(VarAba = "REGISTRO", RGBA(255, 255, 255, 1), RGBA(164, 38, 44, 1))
+            Fill: =If(VarAba = "REGISTRO", RGBA(164, 38, 44, 1), RGBA(255, 255, 255, 1))
+            Font: =Font.'Open Sans'
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =Self.Color
+            HoverFill: =Self.Fill
+            OnSelect: =Set(VarAba, "REGISTRO")
+            PressedBorderColor: =Self.Fill
+            PressedFill: =Self.Fill
+            Text: ="Registrar"
+            Visible: =App.Width < 600
+            Width: =(Parent.Width - 40) / 2
+            X: =15
+            Y: =recInfo.Y + recInfo.Height + 10
+      - btnAbaVolumes:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =RGBA(164, 38, 44, 1)
+            Color: =If(VarAba = "VOLUMES", RGBA(255, 255, 255, 1), RGBA(164, 38, 44, 1))
+            Fill: =If(VarAba = "VOLUMES", RGBA(164, 38, 44, 1), RGBA(255, 255, 255, 1))
+            Font: =Font.'Open Sans'
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =Self.Color
+            HoverFill: =Self.Fill
+            OnSelect: =Set(VarAba, "VOLUMES")
+            PressedBorderColor: =Self.Fill
+            PressedFill: =Self.Fill
+            Text: ="Volumes (" & VarVolumesCarregados & ")"
+            Visible: =App.Width < 600
+            Width: =btnAbaRegistro.Width
+            X: =btnAbaRegistro.X + btnAbaRegistro.Width + 10
+            Y: =btnAbaRegistro.Y
+Screens:
+  scrPendentes:
+    Properties:
+      Fill: =RGBA(234, 234, 234, 1)
+      LoadingSpinnerColor: =RGBA(164, 38, 44, 1)
+      OnVisible: |-
+        =Refresh(expedicao_cabecalho);
+        Reset(txtBuscaPendentes);
+        Set(VarMostrarCancelamento, false);
+        Set(VarProcessandoCancelamento, false);
+        Set(VarNFParaEditar, Blank())
+    Children:
+      - lblTituloPendentes:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Right
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Bold
+            Height: =35
+            Size: =18
+            Text: ="Pendentes"
+            Width: =Parent.Width - 30
+            X: =15
+            Y: =24
+      - galPendentes:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Height: =Parent.Height - Self.Y - 20
+            Items: |-
+              =If(
+                  IsBlank(Trim(txtBuscaPendentes.Text)),
+                  Sort(
+                      Filter(
+                          expedicao_cabecalho,
+                          Status.Value = "PENDENTE" || Status.Value = "EM CARREGAMENTO"
+                      ),
+                      ID,
+                      SortOrder.Ascending
+                  ),
+
+                  IsNumeric(Trim(txtBuscaPendentes.Text)),
+                  Sort(
+                      Filter(
+                          expedicao_cabecalho,
+                          (Status.Value = "PENDENTE" || Status.Value = "EM CARREGAMENTO") &&
+                          NumeroNF = Value(Trim(txtBuscaPendentes.Text))
+                      ),
+                      ID,
+                      SortOrder.Ascending
+                  ),
+
+                  Sort(
+                      Filter(
+                          expedicao_cabecalho,
+                          (Status.Value = "PENDENTE" || Status.Value = "EM CARREGAMENTO") &&
+                          StartsWith(Cliente, Trim(txtBuscaPendentes.Text))
+                      ),
+                      ID,
+                      SortOrder.Ascending
+                  )
+              )
+            TemplateSize: =If(App.Width < 600, 260, 120)
+            Width: =Parent.Width-30
+            X: =15
+            Y: =txtBuscaPendentes.Y + txtBuscaPendentes.Height + 10
+          Children:
+            - Rectangle2:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Fill: =RGBA(89, 0, 0, 1)
+                  Height: =Parent.TemplateHeight - Separator2.Height
+                  Visible: =ThisItem.IsSelected
+                  Width: =4
+            - lbl_NF:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Color: =RGBA(50, 49, 48, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =24
+                  OnSelect: =Select(Parent)
+                  Size: =15
+                  Text: |-
+                    ="NF: " & ThisItem.NumeroNF
+                  Width: =If(App.Width < 600, Parent.TemplateWidth - 24, 201)
+                  X: =If(App.Width < 600, 10, 76)
+                  Y: =10
+            - lbl_clientes:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =23
+                  OnSelect: =Select(Parent)
+                  Size: =15
+                  Text: |-
+                    ="CLIENTE: " & ThisItem.Cliente
+                  Width: =If(App.Width < 600, Parent.TemplateWidth - 24, 201)
+                  X: =If(App.Width < 600, 10, 210)
+                  Y: =If(App.Width < 600, lbl_NF.Y + lbl_NF.Height + 4, 10)
+            - Separator2:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Fill: =RGBA(89, 0, 0, 1)
+                  Height: =8
+                  OnSelect: =Select(Parent)
+                  Width: =Parent.TemplateWidth
+                  Y: =Parent.TemplateHeight - Self.Height
+            - lbl_volumes:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =22
+                  OnSelect: =Select(Parent)
+                  Text: |-
+                    ="Volumes: " & ThisItem.Volumes & "/" & ThisItem.VolumesCarregados
+                  Width: =If(App.Width < 600, (Parent.TemplateWidth - 20), 170)
+                  X: =If(App.Width < 600, 10, 76)
+                  Y: =If(App.Width < 600, 95, 90)
+            - lbl_saldo:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =22
+                  OnSelect: =Select(Parent)
+                  Text: |-
+                    ="Saldo: " & (ThisItem.Volumes - ThisItem.VolumesCarregados)
+                  Width: =If(App.Width < 600, (Parent.TemplateWidth - 20) / 3, 181)
+                  X: =If(App.Width < 600, 10 + 2 * (Parent.TemplateWidth - 20) / 3, 431)
+                  Y: =If(App.Width < 600, 95, 90)
+            - lbl_status:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =24
+                  OnSelect: =Select(Parent)
+                  Size: =15
+                  Text: |-
+                    ="Status: " & ThisItem.Status.Value
+                  Width: =If(App.Width < 600, Parent.TemplateWidth - 24, 300)
+                  X: =If(App.Width < 600, 10, lbl_NF.X)
+                  Y: =If(App.Width < 600, lbl_clientes.Y + lbl_clientes.Height + 4, lbl_NF.Y + lbl_NF.Height + 18)
+            - btnAbrirCarregamento:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(164, 38, 44, 1)
+                  FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+                  Font: =Font.'Open Sans'
+                  Height: =If(App.Width < 600, 34, 26)
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+                  OnSelect: |-
+                    =Set(VarCabecalho, ThisItem);
+                    Navigate(scrCarregamento, ScreenTransition.Fade)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Size: =If(App.Width < 600, 12, 8)
+                  Text: ="Carregar"
+                  Width: =If(App.Width < 600, Parent.TemplateWidth - 24, 73)
+                  X: =If(App.Width < 600, 12, Parent.TemplateWidth - 129)
+                  Y: =If(App.Width < 600, 128, 10)
+            - btnCancelaNF:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(164, 38, 44, 1)
+                  FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+                  Font: =Font.'Open Sans'
+                  Height: =If(App.Width < 600, 34, 26)
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+                  OnSelect: |-
+                    =Set(VarNFParaCancelar, ThisItem);
+                    Reset(txtMotivoCancelamento);
+                    Set(VarMostrarCancelamento, true)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Size: =If(App.Width < 600, 12, 8)
+                  Text: ="Cancelar NF"
+                  Visible: =ThisItem.Status.Value = "PENDENTE" && ThisItem.VolumesCarregados = 0
+                  Width: =If(App.Width < 600, Parent.TemplateWidth - 24, 73)
+                  X: =If(App.Width < 600, 12, Parent.TemplateWidth - 129)
+                  Y: =If(App.Width < 600, 208, 59)
+            - btnEditarNF:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  Fill: =RGBA(164, 38, 44, 1)
+                  FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+                  Font: =Font.'Open Sans'
+                  Height: =If(App.Width < 600, 34, 26)
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+                  OnSelect: |-
+                    =Set(VarNFParaEditar, ThisItem);
+                    Navigate(scrNovaNF, ScreenTransition.Fade)
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Size: =If(App.Width < 600, 12, 8)
+                  Text: ="EditarNF"
+                  Visible: =ThisItem.Status.Value = "PENDENTE" || ThisItem.Status.Value = "EM CARREGAMENTO"
+                  Width: =If(App.Width < 600, Parent.TemplateWidth - 24, 73)
+                  X: =If(App.Width < 600, 12, Parent.TemplateWidth - 238)
+                  Y: =If(App.Width < 600, 168, 10)
+      - Rectangle1:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            Fill: =RGBA(0, 0, 0, 0.45)
+            Height: =Parent.Height
+            Visible: =VarMostrarCancelamento
+            Width: =Parent.Width
+      - conCancelamento:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            BorderColor: =RGBA(89, 0, 0, 1)
+            BorderThickness: =1
+            DropShadow: =DropShadow.Bold
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =Min(Parent.Height - 32, 330)
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            Visible: =VarMostrarCancelamento
+            Width: =Min(Parent.Width - 32, 420)
+            X: =(Parent.Width - Self.Width) / 2
+            Y: =(Parent.Height - Self.Height) / 2
+          Children:
+            - lblTituloCancelamento:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =32
+                  Size: =If(App.Width < 600, 16, 18)
+                  Text: ="Cancelar NF?"
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =16
+            - lblNFCancelamento:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Bold
+                  Height: =28
+                  Size: =If(App.Width < 600, 13, 14)
+                  Text: |-
+                    ="NF: " & VarNFParaCancelar.NumeroNF
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =lblTituloCancelamento.Y + lblTituloCancelamento.Height + 8
+            - txtMotivoCancelamento:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  BorderColor: =RGBA(89, 0, 0, 1)
+                  Default: =""
+                  Font: =Font.'Open Sans'
+                  Height: =Max(80, Parent.Height - Self.Y - 72)
+                  HintText: ="Informe o motivo do cancelamento"
+                  HoverBorderColor: =RGBA(89, 0, 0, 1)
+                  HoverFill: =RGBA(222, 179, 184, 1)
+                  Mode: =TextMode.MultiLine
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =lblNFCancelamento.Y + lblNFCancelamento.Height + 12
+            - btnConfirmarCancelamento:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =ColorFade(Self.Fill, -15%)
+                  Color: =RGBA(255, 255, 255, 1)
+                  DisabledBorderColor: =RGBA(166, 166, 166, 1)
+                  DisplayMode: =If(VarProcessandoCancelamento, DisplayMode.Disabled, DisplayMode.Edit)
+                  Fill: =RGBA(164, 38, 44, 1)
+                  FocusedBorderColor: =ColorFade(Self.Fill, 75%)
+                  Font: =Font.'Open Sans'
+                  Height: =44
+                  HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(164, 38, 44, 1), -20%)
+                  OnSelect: |-
+                    =If(
+                        !VarProcessandoCancelamento,
+                        Set(VarProcessandoCancelamento, true);
+                        If(
+                            IsBlank(Trim(txtMotivoCancelamento.Text)),
+                            Notify("Informe o motivo do cancelamento.", NotificationType.Warning),
+                            IfError(
+                                Patch(expedicao_cabecalho, VarNFParaCancelar, {Status: {Value: "CANCELADO"}, MotivoCancelamento: Trim(txtMotivoCancelamento.Text), DataCancelamento: Now(), UsuarioCancelamento: User().FullName}),
+                                Notify("Não foi possível cancelar a NF: " & FirstError.Message, NotificationType.Error),
+                                Notify("NF cancelada com sucesso.", NotificationType.Success)
+                            )
+                        );
+                        Refresh(expedicao_cabecalho);
+                        Set(VarMostrarCancelamento, false);
+                        Reset(txtMotivoCancelamento);
+                        Set(VarProcessandoCancelamento, false)
+                    )
+                  PressedBorderColor: =Self.Fill
+                  PressedColor: =Self.Fill
+                  PressedFill: =Self.Color
+                  Text: ="Confirmar"
