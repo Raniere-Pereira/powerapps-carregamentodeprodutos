@@ -1,29 +1,51 @@
-# Carregamento de Produtos
+# Product Loading & Shipping Control (Power Apps)
 
-Repositório da solução do Microsoft Power Platform para controle de carregamento de produtos e volumes de notas fiscais.
+Low-code **Microsoft Power Platform (Power Apps)** solution for managing industrial product loading, invoice (NF) dispatch tracking, and volume-level reconciliation integrated with **SharePoint Lists**.
 
-## Estrutura
+## Operational Workflow
 
-- `CarregamentodeProdutos/src/` — metadados da solução exportada
-- `telas/` — documentos das telas do app, organizados por tela
+```mermaid
+flowchart LR
+    A["Invoice Registration / Edit<br/>(expedicao_cabecalho)"] --> B["Pending Invoices<br/>(scrPendentes)"]
+    B --> C["Volume & Piece Loading<br/>(scrCarregamento -> Expedicao_Linhas)"]
+    C --> D["Invoice & Volume Lookup / Reversal<br/>(scrConsulta + colLinhasNF)"]
+    D -->|"Reversal"| C
+    D -->|"Complete / Cancel"| E["Completed Invoices<br/>(scrConcluidas)"]
+```
 
-### Documentos das telas
+## Repository Structure
 
-- `telas/scrConsulta.txt` — consulta da NF, filtros e estorno de volume
-- `telas/scrConcluidas.txt` — NFs concluídas
-- `telas/scrCarregamento.txt` — registro de volumes
-- `telas/scrPendentes.txt` — NFs pendentes
-- `telas/Screens.txt` — arquivo consolidado legado, mantido apenas como referência
+```text
+powerapps-carregamentodeprodutos/
+├── CarregamentodeProdutos/
+│   ├── src/
+│   │   ├── CanvasApps/          # Exported Canvas App source metadata
+│   │   └── Other/               # Solution manifest and configuration files
+│   └── .gitignore
+├── telas/
+│   └── Screens.txt              # Consolidated Power Fx / YAML definitions for all screens
+└── README.md
+```
 
-## Fluxo principal
+## Application Screens (`telas/Screens.txt`)
 
-1. Cadastro/edição da NF
-2. Listagem de pendentes
-3. Registro de volumes por série ou peça
-4. Consulta por NF/volume
-5. Estorno de volume individual
-6. Cancelamento ou conclusão da NF
+All screen definitions and Power Fx formulas are consolidated in `telas/Screens.txt`:
 
-## Observação
+| Screen | Operational Responsibility |
+| --- | --- |
+| `scrPendentes` | Lists open/pending invoices awaiting loading and dispatch |
+| `scrCarregamento` | Registers loaded volumes by serial number or individual piece |
+| `scrConsulta` | Searches by invoice (NF) or volume, applies filters, and reverses individual loaded volumes |
+| `scrConcluidas` | Displays completed/closed invoices for operational audit and history |
 
-Este repositório funciona como documentação e backup do app Power Apps, preservando a estrutura das telas e as regras de negócio em formato legível.
+## Data Sources & Collections
+
+- **SharePoint Lists:**
+  - `expedicao_cabecalho` — Invoice/dispatch header records (status, metadata, completion/cancellation state)
+  - `Expedicao_Linhas` — Line-level loaded volumes linked to each invoice
+- **In-Memory Collection:**
+  - `colLinhasNF` — Local screen collection used during invoice volume inspection and validation
+
+## Purpose
+
+This repository serves as readable documentation and versioned backup of the Canvas App architecture, screen definitions, and Power Fx business rules for shipping dispatch control.
